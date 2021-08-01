@@ -1,4 +1,4 @@
-# Tweeter_to_Discord_bot
+# Twitter_to_Discord_bot
 Work in progress!
 
 A Discord bot made in Python that gets information from twitter and transfers it to a Discord server.
