@@ -1,0 +1,139 @@
+#https://instructobit.com/tutorial/108/How-to-share-global-variables-between-files-in-Python
+#import global_var
+
+import discord
+import os
+import requests
+import json
+import random
+from replit import db
+from keep_alive import keep_alive
+import global_var
+
+#Channel id 869286704933114005
+async def discord_write_tweet():
+  channel = client.get_channel(869286704933114005)
+  await channel.send(global_var.tweet.text)
+
+# Authenticate to Twitter
+#auth = tweepy.AppAuthHandler(os.environ['API_KEY'], os.environ['API_SECRET'])
+#api = tweepy.API(auth)
+
+#user = api.get_user(os.environ['NM_USER'])
+#user = api.get_user('@AndreiaSaria')
+#print(user.description)
+
+#for tweet in tweepy.Cursor(api.search, q='FML').items(10):
+#    print(tweet.text)
+
+#public_tweets = api.home_timeline()
+#for tweet in public_tweets:
+#    print(tweet.text)
+
+client = discord.Client();
+
+sad_words = ["sad","depressed","unhappy","miserable","depressing"]
+
+starter_encouragements = [
+  "Cheer up!",
+  "Hang in there",
+  "You are a great person!",
+  "Beating up a sandwitch only makes it tastier."
+]
+
+if "responding" not in db.keys():
+  db["responding"] = True
+
+def get_quote():
+  response = requests.get("https://zenquotes.io/api/random")
+  json_data = json.loads(response.text)
+  quote = json_data[0]['q'] + ' -' + json_data[0]['a']
+  return(quote)
+
+def update_encouragements(encouraging_message):
+  if "encouragements" in db.keys():
+    encouragements = db["encouragements"]
+    encouragements.append(encouraging_message)
+    db["encouragements"] = encouragements
+  else:
+    db["encouragements"] = [encouraging_message]
+
+def delete_encouragement(index):
+  encouragements = db["encouragements"]
+  if len(encouragements) > index:
+    del encouragements[index]
+    db["encouragements"] = encouragements
+
+
+@client.event
+async def on_ready():
+  print('We have logged in as {0.user}'.format(client))
+  global_var.disclient = client
+
+@client.event
+async def on_message(message):
+#The message cannot come from the bot
+  if message.author == client.user:
+    return
+
+ # if message.content.startswith('/hello'):
+ #   await message.channel.send('Hello!')
+
+  msg = message.content
+
+#Send last 2 public_tweets
+#  if msg.startswith('/public'):
+#   public_search = msg.split("/public ",1)[1]
+#   for tweet in tweepy.Cursor(api.search, q= public_search).items(5):
+#    await message.channel.send(tweet.text)
+
+#Send quote
+  if msg.startswith('/quote'):
+    quote = get_quote()
+    await message.channel.send(quote)
+#If the bot is responding, send encouragements when the person is sad
+  if db["responding"]:
+    options = starter_encouragements
+    if "encouragements" in db.keys():
+      options.extend(db["encouragements"])
+
+    if any(word in msg for word in sad_words):
+      await message.channel.send(random.choice(options))
+
+#Add new quotes
+  if msg.startswith("/new"):
+    encouraging_message = msg.split("/new ",1)[1]
+    update_encouragements(encouraging_message)
+    await message.channel.send("New quote added.")
+
+#delete quotes
+  if msg.startswith("/delete"):
+    encouragements = [] #if there was no encouragements in the database return nothing
+    if "encouragements" in db.keys():
+      index = int(msg.split("/delete",1)[1])
+      delete_encouragement(index)
+      encouragements = db.get_raw("encouragements")
+    await message.channel.send(encouragements) 
+
+#present list
+  if msg.startswith("/list"):
+    encouragements = []
+    if "encouragements" in db.keys():
+      encouragements = db["encouragements"]
+    await message.channel.send(encouragements)
+
+#Is it responding? True / False
+  if msg.startswith("/responding"):
+    value = msg.split("/responding ",1)[1]
+
+    if value.lower() == "true":
+      db["responding"] = True
+      await message.channel.send("Responding is on")
+    else:
+      db["responding"] = False
+      await message.channel.send("Responding is off")
+
+#Starting the webserver
+#keep_alive()
+
+client.run(os.environ['TOKEN'])
