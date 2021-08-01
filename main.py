@@ -1,22 +1,18 @@
-import discord
 from discord.ext import commands
-from discord.ext.commands import Bot
 import os
 import json
 import requests
 from keep_alive import keep_alive
 import tweepy
-import time
-import threading
-
-global mySentMessages
-mySentMessages = []
 
 #Here we do not use the client, we use commands https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#commands
 bot = commands.Bot(command_prefix='--')
 
 # Authenticate to Twitter
+#Common authentication:
 #auth = tweepy.AppAuthHandler(os.environ['USER_KEY'], os.environ['USER_SECRET'])
+
+#But since we use Streaming tweets we need to use this other auth:
 auth = tweepy.OAuthHandler(os.environ['USER_KEY'], os.environ['USER_SECRET'])
 auth.set_access_token(os.environ['API_KEY'], os.environ['API_SECRET'])
 api = tweepy.API(auth)
@@ -39,25 +35,10 @@ wait_on_rate_limit_notify=True)
 
 tweets_listener = tweetStream(api)
 stream = tweepy.Stream(api.auth, tweets_listener)
+#Following myself for the sake of testing
 userid = api.get_user('@AndreiaSaria')
 stream.filter(follow=[str(userid.id)], is_async = True)
 #stream.filter(user=os.environ['NM_USER'], is_async = true)
-
-def timer_thread(stop):
-  print('before while')
-  i = 0
-  while True:
-    if stop():
-      break
-    i=i+1
-    print(f"Iteration number {i}")
-    time.sleep(3)
-    
-
-threads = []
-def set_stop(value):
-  global stop_threads
-  stop_threads = value
 
 #https://stackoverflow.com/questions/64810905/emit-custom-events-discord-py
 @bot.event
@@ -70,7 +51,7 @@ async def on_tweet(tweet):
 @bot.event
 async def on_ready():
   print('I have just logged in as {0.user}'.format(bot))
-  await bot.get_channel(869286704933114005).send('Hello humans! I am the new bot in the area. --hello!')
+  await bot.get_channel(869286704933114005).send('Hello humans! I am the new bot in the area. --hello')
 
 @bot.command()
 async def hello(ctx):
@@ -78,6 +59,7 @@ async def hello(ctx):
   await ctx.channel.send('Hello human.')
 
 @bot.command()
+#Function to get the last 5 tweets about a chosen subject
 #Send the about in quotes if it contains more than 1 word
 async def public_tweet_about(ctx,rt:bool,about):
   if(rt == False):
@@ -89,6 +71,17 @@ async def public_tweet_about(ctx,rt:bool,about):
     for tweet in tweepy.Cursor(api.search, q = about, tweet_mode="extended").items(5):
       print(f"{tweet.user.name}: {tweet.full_text}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
       await ctx.channel.send(f"{tweet.user.name}: {tweet.full_text}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
+
+#https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#error-handling
+@public_tweet_about.error
+async def public_tweet_about_error(ctx,error):
+  print(error)
+  if isinstance(error, commands.MissingRequiredArgument):
+    await ctx.channel.send('Missing required argument. \nThis is how you use this function: --public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word">. \nAs an example: --public_tweet_about false "How handsome am I?"')
+  elif isinstance(error, commands.BadBoolArgument):
+    await ctx.channel.send('I could not understand if you want RTs or not. If you want them type true after the function call, otherwise, type false.')
+  elif isinstance(error, commands.MissingPermissions):
+    await ctx.channel.send('You do not have permissions to use this function. Sorry.')
 
 
 '''@bot.event
@@ -169,7 +162,8 @@ async def on_message(message):
           print(f"{tweet.user.name}: {tweet.text}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
           await message.channel.send(f"{tweet.user.name}: {tweet.text}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
 
+
+'''
 #Starting the webserver
 #keep_alive()
-'''
 bot.run(os.environ['TOKEN'])
