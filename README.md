@@ -12,14 +12,19 @@ There are also some functions:
 
 Search twitter for a specific subject/user/hashtag. It only works if you have the minimum role.
 --public_tweet_about <Consider RT's? True/False> <"subject you want to seach">
+
 Get dogs from random.dog
 --dog
+
 Play youtube audio 
 --play <URL>
+  
 Pause audio
 --pause
+  
 Resume
 --resume
+  
 Leave voice channel
 --leave
 
