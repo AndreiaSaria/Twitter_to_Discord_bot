@@ -1,11 +1,13 @@
 import discord
 from discord.ext import commands
+import tweepy
 import os
+import requests
 import aiohttp
 import io
-import requests
 from keep_alive import keep_alive
-import tweepy
+import youtube_dl
+
 
 global twitter_channel
 twitter_channel = 869286704933114005
@@ -112,17 +114,69 @@ async def dog_error(ctx,error):
 #https://stackoverflow.com/questions/64725932/discord-py-send-a-message-if-author-isnt-in-a-voice-channel
 #https://stackoverflow.com/questions/61900932/how-can-you-check-voice-channel-id-that-bot-is-connected-to-discord-py
 #https://www.youtube.com/watch?v=ml-5tXRmmFk
+
+#do this https://stackoverflow.com/questions/66610012/discord-py-streaming-youtube-live-into-voice
 @bot.command()
-async def play(ctx):#, url : str):
+async def play(ctx, url : str):
+  song_there = os.path.isfile("song.mp3")
+  try:
+    if song_there:
+      os.remove("song.mp3")
+  except PermissionError:
+    await ctx.send("Wait for current music to end or use the --stop command")
+    return
+
   voiceChannel = ctx.author.voice
   if voiceChannel:
     voiceChannel = ctx.author.voice.channel
-    voice = discord.utils.get(bot.voice_clients, guild=ctx.guild)
     await voiceChannel.connect()
+    voice = discord.utils.get(bot.voice_clients, guild=ctx.guild)
 
+    ydl_opts = {
+      'format': 'bestaudio/best',
+      'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '192',
+      }],
+    }
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+      ydl.download([url])
+    for file in os.listdir("./"):
+      if file.endswith(".mp3"):
+        os.rename(file,"song.mp3")
+    voice.play(discord.FFmpegPCMAudio("song.mp3"))
   else:
     print('No voice channel')
 
+@bot.command()
+async def leave(ctx):
+  voice = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+  if voice.is_connected:
+    await voice.disconnect()
+  else:
+    await ctx.send('Bot is not on a voice channel')
+
+@bot.command()
+async def pause(ctx):
+  voice = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+  if voice.is_playing():
+    voice.pause()
+  else:
+    await ctx.send('No audio playing.')
+
+@bot.command()
+async def resume(ctx):
+  voice = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+  if voice.is_paused():
+    voice.resume()
+  else:
+    await ctx.send('The audio is not paused.')
+
+@bot.command()
+async def stop(ctx):
+  voice = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+  voice.stop()
 
 #Starting the webserver
 #keep_alive()
