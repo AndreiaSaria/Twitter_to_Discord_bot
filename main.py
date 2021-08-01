@@ -8,10 +8,10 @@ import io
 from keep_alive import keep_alive
 import youtube_dl
 
-
-global twitter_channel
+global twitter_channel #The discord channel to publish tweets
 twitter_channel = 869286704933114005
-global minimum_role
+
+global minimum_role #Minimum role to use the public_tweet_about
 minimum_role = "Nerd Monkeys"
 
 #-----Autentication-----
