@@ -31,10 +31,7 @@ api = tweepy.API(auth)
 class tweetStream(tweepy.StreamListener):
   def on_status(self, tweet):
     if (not tweet.retweeted) and ('RT @' not in tweet.text) and (userid.id == tweet.user.id):
-      #https://stackoverflow.com/questions/52431763/how-to-get-full-text-of-tweets-using-tweepy-in-python
-      if 'extended_tweet' in tweet._json: 
-        print(tweet._json['extended_tweet']['full_text']) 
-      #print(tweet.user.name + ": " + tweet.text)
+      print(tweet.user.name + ": " + tweet.text)
       bot.dispatch("tweet",tweet)
       #In case we need the RT check this https://docs.tweepy.org/en/stable/extended_tweets.html#examples
 
@@ -62,7 +59,7 @@ async def on_tweet(tweet):
   if 'extended_tweet' in tweet._json: 
     text_to_send = tweet._json['extended_tweet']['full_text']
   else:
-   text_to_send = tweet.text
+    text_to_send = tweet.text
   #https://github.com/tweepy/tweepy/issues/1192
   await channel.send(f"{tweet.user.name}: {text_to_send}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
 
