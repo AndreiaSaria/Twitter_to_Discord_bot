@@ -9,7 +9,7 @@ from keep_alive import keep_alive
 import youtube_dl
 
 global twitter_channel #The discord channel to publish tweets
-twitter_channel = 814638149720211516
+twitter_channel = 814638149720211516 #869286704933114005
 
 global minimum_role #Minimum role to use the public_tweet_about
 minimum_role = "Nerd Monkeys"
@@ -30,9 +30,11 @@ api = tweepy.API(auth)
 #https://developer.twitter.com/en/docs/twitter-api/v1/tweets/filter-realtime/overview
 class tweetStream(tweepy.StreamListener):
   def on_status(self, tweet):
-    if (not tweet.retweeted) and ('RT @' not in tweet.text):
-      print(tweet.user.name + ": " + tweet.text)
-
+    if (not tweet.retweeted) and ('RT @' not in tweet.text) and (userid.id == tweet.user.id):
+      #https://stackoverflow.com/questions/52431763/how-to-get-full-text-of-tweets-using-tweepy-in-python
+      if 'extended_tweet' in tweet._json: 
+        print(tweet._json['extended_tweet']['full_text']) 
+      #print(tweet.user.name + ": " + tweet.text)
       bot.dispatch("tweet",tweet)
       #In case we need the RT check this https://docs.tweepy.org/en/stable/extended_tweets.html#examples
 
@@ -46,6 +48,7 @@ tweets_listener = tweetStream(api)
 stream = tweepy.Stream(api.auth, tweets_listener)
 
 userid = api.get_user('@Nerd_Monkeys')
+#userid = api.get_user('@AndreiaSaria')
 stream.filter(follow=[str(userid.id)], is_async = True)
 
 
@@ -55,8 +58,13 @@ stream.filter(follow=[str(userid.id)], is_async = True)
 @bot.event
 async def on_tweet(tweet):
   channel = bot.get_channel(twitter_channel)
+  #https://stackoverflow.com/questions/52431763/how-to-get-full-text-of-tweets-using-tweepy-in-python
+  if 'extended_tweet' in tweet._json: 
+    text_to_send = tweet._json['extended_tweet']['full_text']
+  else:
+   text_to_send = tweet.text
   #https://github.com/tweepy/tweepy/issues/1192
-  await channel.send(f"{tweet.user.name}: {tweet.text}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
+  await channel.send(f"{tweet.user.name}: {text_to_send}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
 
 @bot.event
 async def on_ready():
@@ -65,7 +73,7 @@ async def on_ready():
 
 @bot.command()
 async def bot_help(ctx):
-  await ctx.channel.send('--hello \n--dog To get a random dog from random.dog api\n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> This is only available for Nerd Monkeys')
+  await ctx.channel.send('--hello \n--dog To get a random dog from random.dog api \n--play <Youtube URL> to play the sound on a voice channel\n--pause to pause audio \n--resume to resume audio \n--leave to leave the voice channel \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> This is only available for Nerd Monkeys')
 
 @bot.command()
 async def hello(ctx):
@@ -108,7 +116,8 @@ async def dog(ctx):
         await ctx.channel.send(file=discord.File(data, dogfilename))
 @dog.error
 async def dog_error(ctx,error):
-  await ctx.channel.send('OOps, no dogs for you, error:' +error)
+  print(error)
+  await ctx.channel.send('OOps, we had an error, no dogs for you :(')
 
 #https://stackoverflow.com/questions/64725932/discord-py-send-a-message-if-author-isnt-in-a-voice-channel
 #https://stackoverflow.com/questions/61900932/how-can-you-check-voice-channel-id-that-bot-is-connected-to-discord-py
