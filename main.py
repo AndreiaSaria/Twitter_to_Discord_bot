@@ -9,7 +9,7 @@ from keep_alive import keep_alive
 import youtube_dl
 
 global twitter_channel #The discord channel to publish tweets
-twitter_channel = 869286704933114005
+twitter_channel = 814638149720211516
 
 global minimum_role #Minimum role to use the public_tweet_about
 minimum_role = "Nerd Monkeys"
@@ -31,7 +31,7 @@ api = tweepy.API(auth)
 class tweetStream(tweepy.StreamListener):
   def on_status(self, tweet):
     if (not tweet.retweeted) and ('RT @' not in tweet.text):
-      print(tweet.user.name + ": " + tweet.extended_tweet["full_text"])
+      print(tweet.user.name + ": " + tweet.text)
 
       bot.dispatch("tweet",tweet)
       #In case we need the RT check this https://docs.tweepy.org/en/stable/extended_tweets.html#examples
@@ -44,10 +44,10 @@ wait_on_rate_limit_notify=True)
 
 tweets_listener = tweetStream(api)
 stream = tweepy.Stream(api.auth, tweets_listener)
-#Following myself for the sake of testing
-#userid = api.get_user('@AndreiaSaria')
-#stream.filter(follow=[str(userid.id)], is_async = True)
-stream.filter(follow=os.environ['NM_USER'], is_async = True)
+
+userid = api.get_user('@Nerd_Monkeys')
+stream.filter(follow=[str(userid.id)], is_async = True)
+
 
 
 #-----BOT EVENTS-----
@@ -56,13 +56,12 @@ stream.filter(follow=os.environ['NM_USER'], is_async = True)
 async def on_tweet(tweet):
   channel = bot.get_channel(twitter_channel)
   #https://github.com/tweepy/tweepy/issues/1192
-  text_to_send = tweet.extended_tweet["full_text"]
-  await channel.send(f"{tweet.user.name}: {text_to_send}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
+  await channel.send(f"{tweet.user.name}: {tweet.text}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
 
 @bot.event
 async def on_ready():
   print('I have just logged in as {0.user}'.format(bot))
-  await bot.get_channel(twitter_channel).send('Hello humans! I am now going to post twitter updates in this channel.')
+  #await bot.get_channel(twitter_channel).send('Hello humans! I am now going to post twitter updates in this channel.')
 
 @bot.command()
 async def bot_help(ctx):
@@ -179,5 +178,5 @@ async def stop(ctx):
   voice.stop()
 
 #Starting the webserver
-#keep_alive()
+keep_alive()
 bot.run(os.environ['TOKEN'])
