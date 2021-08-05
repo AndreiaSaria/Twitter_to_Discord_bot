@@ -7,6 +7,7 @@ import aiohttp
 import io
 from keep_alive import keep_alive
 import youtube_dl
+import re
 
 global twitter_channel #The discord channel to publish tweets
 twitter_channel = 814638149720211516 #869286704933114005
@@ -49,7 +50,6 @@ userid = api.get_user('@Nerd_Monkeys')
 stream.filter(follow=[str(userid.id)], is_async = True)
 
 
-
 #-----BOT EVENTS-----
 #https://stackoverflow.com/questions/64810905/emit-custom-events-discord-py
 @bot.event
@@ -57,9 +57,13 @@ async def on_tweet(tweet):
   channel = bot.get_channel(twitter_channel)
   #https://stackoverflow.com/questions/52431763/how-to-get-full-text-of-tweets-using-tweepy-in-python
   if 'extended_tweet' in tweet._json: 
-    text_to_send = tweet._json['extended_tweet']['full_text']
+    tweet_full_text = tweet._json['extended_tweet']['full_text']
   else:
-    text_to_send = tweet.text
+    tweet_full_text = tweet.text
+
+  #https://stackoverflow.com/questions/63555168/excluding-link-at-the-end-while-pulling-tweets-in-tweepy-streaming
+  text_to_send = re.sub(r' https://t.co/\w{10}', '', tweet_full_text)
+
   #https://github.com/tweepy/tweepy/issues/1192
   await channel.send(f"{tweet.user.name}: {text_to_send}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
 
