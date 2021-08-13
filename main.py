@@ -5,6 +5,7 @@ import os
 import requests
 import aiohttp
 import io
+import json
 #from keep_alive import keep_alive
 import youtube_dl
 import re
@@ -79,7 +80,7 @@ async def on_ready():
 
 @bot.command()
 async def bot_help(ctx):
-  await ctx.channel.send('--hello \n--dog To get a random dog from random.dog api \n--play <Youtube URL> to play the sound on a voice channel\n--pause to pause audio \n--resume to resume audio \n--leave to leave the voice channel \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> This is only available for Nerd Monkeys')
+  await ctx.channel.send('--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \n--play <Youtube URL> to play the sound on a voice channel\n--pause to pause audio \n--resume to resume audio \n--leave to leave the voice channel \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> This is only available for Nerd Monkeys')
 
 @bot.command()
 async def hello(ctx):
@@ -109,9 +110,9 @@ async def public_tweet_about_error(ctx,error):
     await ctx.channel.send('You do not have permissions to use this function. \nSorry.')
 
 @bot.command()
-#Dog only possible by random.dog, maybe add a webm, png, jpeg filter in the parameters
+#Dog only possible by random.dog
 async def dog(ctx):
-  temp = requests.get("https://random.dog/woof?filter=mp4")
+  temp = requests.get("https://random.dog/woof?filter=mp4") #filtering mp4 files, they are usually too big to download in a fast response style.
   dogfilename = temp.text
   print("https://random.dog/"+dogfilename)
   async with aiohttp.ClientSession() as session:
@@ -124,6 +125,25 @@ async def dog(ctx):
 async def dog_error(ctx,error):
   print(error)
   await ctx.channel.send('OOps, we had an error, no dogs for you :(')
+
+@bot.command()
+#Cat command only possible by thecatapi.com
+async def cat(ctx):
+  temp = requests.get("https://api.thecatapi.com/v1/images/search", headers={"x-api-key":os.environ['CAT_API_KEY']})
+  json_data = json.loads(temp.text)
+  cat = json_data[0]['url']
+  catfilename = cat.split("/images/",1)[1]
+  print(cat)
+  async with aiohttp.ClientSession() as session:
+    async with session.get(cat) as resp:
+        if resp.status != 200:
+          return await ctx.send('Could not get cat...')
+        data = io.BytesIO(await resp.read())
+        await ctx.channel.send(file=discord.File(data, catfilename))
+@cat.error
+async def cat_error(ctx,error):
+  print(error)
+  await ctx.channel.send('OOps, we had an error, no cats for you :(')
 
 #https://stackoverflow.com/questions/64725932/discord-py-send-a-message-if-author-isnt-in-a-voice-channel
 #https://stackoverflow.com/questions/61900932/how-can-you-check-voice-channel-id-that-bot-is-connected-to-discord-py
