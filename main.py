@@ -5,12 +5,13 @@ import os
 import requests
 import aiohttp
 import io
-from keep_alive import keep_alive
+#from keep_alive import keep_alive
 import youtube_dl
 import re
+from urllib3.exceptions import ProtocolError
 
 global twitter_channel #The discord channel to publish tweets
-twitter_channel = 814638149720211516 #869286704933114005
+twitter_channel = 869286704933114005 #814638149720211516 
 
 global minimum_role #Minimum role to use the public_tweet_about
 minimum_role = "Nerd Monkeys"
@@ -31,10 +32,14 @@ api = tweepy.API(auth)
 #https://developer.twitter.com/en/docs/twitter-api/v1/tweets/filter-realtime/overview
 class tweetStream(tweepy.StreamListener):
   def on_status(self, tweet):
-    if (not tweet.retweeted) and ('RT @' not in tweet.text) and (userid.id == tweet.user.id):
-      print(tweet.user.name + ": " + tweet.text)
-      bot.dispatch("tweet",tweet)
-      #In case we need the RT check this https://docs.tweepy.org/en/stable/extended_tweets.html#examples
+    try:
+      if (not tweet.retweeted) and ('RT @' not in tweet.text) and (userid.id == tweet.user.id):
+        print(tweet.user.name + ": " + tweet.text)
+        bot.dispatch("tweet",tweet)
+      
+        #In case we need the RT check this https://docs.tweepy.org/en/stable/extended_tweets.html#examples
+    except ProtocolError:
+      print("PrototcolError")
 
   def on_error(self, status):
     print("Error detected " + str(status))
@@ -45,8 +50,8 @@ wait_on_rate_limit_notify=True)
 tweets_listener = tweetStream(api)
 stream = tweepy.Stream(api.auth, tweets_listener)
 
-userid = api.get_user('@Nerd_Monkeys')
-#userid = api.get_user('@AndreiaSaria')
+#userid = api.get_user('@Nerd_Monkeys')
+userid = api.get_user('@AndreiaSaria')
 stream.filter(follow=[str(userid.id)], is_async = True)
 
 
@@ -188,5 +193,6 @@ async def stop(ctx):
   voice.stop()
 
 #Starting the webserver
-keep_alive()
-bot.run(os.environ['TOKEN'])
+#keep_alive()
+bot.run(os.environ['MYSERVERTOKEN'])
+#bot.run(os.environ['NMTOKEN'])
