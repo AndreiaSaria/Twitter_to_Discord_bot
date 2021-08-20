@@ -45,7 +45,7 @@ class tweetStream(tweepy.StreamListener):
   def on_error(self, status):
     print("Error detected " + str(status))
 
-api = tweepy.API(auth, wait_on_rate_limit=True,
+api = tweepy.API(auth, timeout=100 ,wait_on_rate_limit=True,
 wait_on_rate_limit_notify=True)
 
 tweets_listener = tweetStream(api)
