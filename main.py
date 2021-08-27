@@ -45,7 +45,7 @@ class tweetStream(tweepy.StreamListener):
   def on_error(self, status):
     print("Error detected " + str(status))
 
-api = tweepy.API(auth, timeout=100 ,wait_on_rate_limit=True,
+api = tweepy.API(auth, wait_on_rate_limit=True,
 wait_on_rate_limit_notify=True)
 
 tweets_listener = tweetStream(api)
@@ -144,6 +144,26 @@ async def cat(ctx):
 async def cat_error(ctx,error):
   print(error)
   await ctx.channel.send('OOps, we had an error, no cats for you :(')
+
+#https://stackoverflow.com/questions/53705633/how-to-use-discord-bot-commands-and-event-both
+integer_num = 0
+@bot.listen()
+async def on_message(message):
+#The message cannot come from the bot
+  lowerCaseMsg = message.content.lower()
+  if message.author == bot.user:
+    return
+
+  if lowerCaseMsg.startswith('boas') or lowerCaseMsg.startswith('bouas') or lowerCaseMsg.startswith('buenos'):
+    global integer_num
+    integer_num += 1
+    print(integer_num)
+    if (integer_num == 3):
+      integer_num = 0
+      await message.channel.send('BOUAS!')
+  
+  if lowerCaseMsg.startswith('hello bot'):
+    await message.channel.send('Hello human!')
 
 #https://stackoverflow.com/questions/64725932/discord-py-send-a-message-if-author-isnt-in-a-voice-channel
 #https://stackoverflow.com/questions/61900932/how-can-you-check-voice-channel-id-that-bot-is-connected-to-discord-py
