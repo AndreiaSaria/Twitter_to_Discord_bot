@@ -17,7 +17,7 @@ twitter_channel = 869286704933114005 #814638149720211516
 global minimum_role #Minimum role to use the public_tweet_about
 minimum_role = "Nerd Monkeys"
 
-#-----Autentication-----
+#-----AUTENTICATION-----
 #Here we do not use the client, we use commands https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#commands
 bot = commands.Bot(command_prefix='--')
 
@@ -29,7 +29,7 @@ auth.set_access_token(os.environ['API_KEY'], os.environ['API_SECRET'])
 api = tweepy.API(auth)
 
 
-#-----Tweet stream-----
+#-----TWITTER STREAM-----
 #https://developer.twitter.com/en/docs/twitter-api/v1/tweets/filter-realtime/overview
 class tweetStream(tweepy.StreamListener):
   def on_status(self, tweet):
@@ -41,9 +41,10 @@ class tweetStream(tweepy.StreamListener):
         #In case we need the RT check this https://docs.tweepy.org/en/stable/extended_tweets.html#examples
     except ProtocolError:
       print("PrototcolError")
-
-  def on_error(self, status):
-    print("Error detected " + str(status))
+      
+  def on_exception(self, exception):
+        print('exception', exception)
+        start_stream()
 
 api = tweepy.API(auth, wait_on_rate_limit=True,
 wait_on_rate_limit_notify=True)
@@ -53,8 +54,12 @@ stream = tweepy.Stream(api.auth, tweets_listener)
 
 #userid = api.get_user('@Nerd_Monkeys')
 userid = api.get_user('@AndreiaSaria')
-stream.filter(follow=[str(userid.id)], is_async = True)
 
+def start_stream():
+    stream.filter(follow=[str(userid.id)], is_async = True, stall_warnings=True) #here's where the stream starts
+    
+start_stream()
+    
 
 #-----BOT EVENTS-----
 #https://stackoverflow.com/questions/64810905/emit-custom-events-discord-py
@@ -72,6 +77,11 @@ async def on_tweet(tweet):
 
   #https://github.com/tweepy/tweepy/issues/1192
   await channel.send(f"{tweet.user.name}: {text_to_send}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
+
+@bot.event
+async def on_tweepystats(tweepystats):
+  channel = bot.get_channel(twitter_channel)
+  await channel.send(tweepystats)
 
 @bot.event
 async def on_ready():
@@ -112,7 +122,7 @@ async def public_tweet_about_error(ctx,error):
 @bot.command()
 #Dog only possible by random.dog
 async def dog(ctx):
-  temp = requests.get("https://random.dog/woof?filter=mp4") #filtering mp4 files, they are usually too big to download in a fast response style.
+  temp = requests.get("https://random.dog/woof?") #woof?filter or woof?include to filter files.
   dogfilename = temp.text
   print("https://random.dog/"+dogfilename)
   async with aiohttp.ClientSession() as session:
@@ -124,7 +134,7 @@ async def dog(ctx):
 @dog.error
 async def dog_error(ctx,error):
   print(error)
-  await ctx.channel.send('OOps, we had an error, no dogs for you :(')
+  await dog(ctx) #call again when error
 
 @bot.command()
 #Cat command only possible by thecatapi.com
@@ -143,8 +153,10 @@ async def cat(ctx):
 @cat.error
 async def cat_error(ctx,error):
   print(error)
-  await ctx.channel.send('OOps, we had an error, no cats for you :(')
+  await cat(ctx) #call again when error
 
+
+#-----BOT LISTEN-----
 #https://stackoverflow.com/questions/53705633/how-to-use-discord-bot-commands-and-event-both
 integer_num = 0
 @bot.listen()
@@ -165,6 +177,10 @@ async def on_message(message):
   if lowerCaseMsg.startswith('hello bot'):
     await message.channel.send('Hello human!')
 
+
+
+
+#-----BOT MUSIC PLAY (VERY EARLY VER)-----
 #https://stackoverflow.com/questions/64725932/discord-py-send-a-message-if-author-isnt-in-a-voice-channel
 #https://stackoverflow.com/questions/61900932/how-can-you-check-voice-channel-id-that-bot-is-connected-to-discord-py
 #https://www.youtube.com/watch?v=ml-5tXRmmFk
@@ -232,7 +248,9 @@ async def stop(ctx):
   voice = discord.utils.get(bot.voice_clients, guild=ctx.guild)
   voice.stop()
 
-#Starting the webserver
+
+
+#-----STARTING WEB SERVER-----
 #keep_alive()
 bot.run(os.environ['MYSERVERTOKEN'])
 #bot.run(os.environ['NMTOKEN'])
