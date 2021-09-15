@@ -10,9 +10,9 @@ import json
 import youtube_dl
 import re
 from urllib3.exceptions import ProtocolError
-
-global twitter_channel #The discord channel to publish tweets
-twitter_channel = 869286704933114005 #814638149720211516 
+ 
+twitter_channel = 869286704933114005 #814638149720211516 #The discord channel to publish tweets
+twitter_check_channel = 887667563457306694 #819246013277274143
 
 global minimum_role #Minimum role to use the public_tweet_about
 minimum_role = "Nerd Monkeys"
@@ -29,7 +29,7 @@ auth.set_access_token(os.environ['API_KEY'], os.environ['API_SECRET'])
 api = tweepy.API(auth)
 
 
-#-----TWITTER STREAM-----
+#-----TWITTER STREAM AND EVENTS-----
 #https://developer.twitter.com/en/docs/twitter-api/v1/tweets/filter-realtime/overview
 class tweetStream(tweepy.StreamListener):
   def on_status(self, tweet):
@@ -41,10 +41,13 @@ class tweetStream(tweepy.StreamListener):
         #In case we need the RT check this https://docs.tweepy.org/en/stable/extended_tweets.html#examples
     except ProtocolError:
       print("PrototcolError")
+      bot.dispatch("lost_tweet", "Protocol error, restarting stream. The latest tweet may be lost. (use --get_last_tweets <number of tweets> to try and catch the lost ones)")
+      start_stream()
       
   def on_exception(self, exception):
-        print('exception', exception)
-        start_stream()
+    print('Exception! \n', exception)
+    bot.dispatch("lost_tweet", "Exception! Restarting stream. The latest tweet may be lost. (use --get_last_tweets <number of tweets> to try and catch the lost ones)")
+    start_stream()
 
 api = tweepy.API(auth, wait_on_rate_limit=True,
 wait_on_rate_limit_notify=True)
@@ -52,21 +55,21 @@ wait_on_rate_limit_notify=True)
 tweets_listener = tweetStream(api)
 stream = tweepy.Stream(api.auth, tweets_listener)
 
-#userid = api.get_user('@Nerd_Monkeys')
-userid = api.get_user('@AndreiaSaria')
+userid = api.get_user('@Nerd_Monkeys')
+#userid = api.get_user('@AndreiaSaria')
+#userid = api.get_user('@IGN')
 
 def start_stream():
     stream.filter(follow=[str(userid.id)], is_async = True, stall_warnings=True) #here's where the stream starts
     
 start_stream()
     
-
-#-----BOT EVENTS-----
+tweetArray = []
 #https://stackoverflow.com/questions/64810905/emit-custom-events-discord-py
 @bot.event
 async def on_tweet(tweet):
-  channel = bot.get_channel(twitter_channel)
-  #https://stackoverflow.com/questions/52431763/how-to-get-full-text-of-tweets-using-tweepy-in-python
+  print(tweet)
+  channel = bot.get_channel(twitter_check_channel)
   if 'extended_tweet' in tweet._json: 
     tweet_full_text = tweet._json['extended_tweet']['full_text']
   else:
@@ -74,23 +77,82 @@ async def on_tweet(tweet):
 
   #https://stackoverflow.com/questions/63555168/excluding-link-at-the-end-while-pulling-tweets-in-tweepy-streaming
   text_to_send = re.sub(r' https://t.co/\w{10}', '', tweet_full_text)
+  tweetArray.append(f"{tweet.user.name}: {text_to_send}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
 
-  #https://github.com/tweepy/tweepy/issues/1192
-  await channel.send(f"{tweet.user.name}: {text_to_send}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
+  await channel.send(tweetArray[0])
+  await channel.send(f"Should I send this message to the twitter channel?")
 
 @bot.event
-async def on_tweepystats(tweepystats):
-  channel = bot.get_channel(twitter_channel)
-  await channel.send(tweepystats)
+async def on_lost_tweet(text_to_send):
+  await bot.get_channel(twitter_check_channel).send(text_to_send)
 
+@bot.command()
+@commands.has_role(minimum_role)
+async def yes(ctx):
+  check_channel = bot.get_channel(twitter_check_channel)
+
+  if(ctx.channel == check_channel):
+    if(len(tweetArray) > 0):
+      await check_channel.send("Sending tweet to social media feeds channel.")
+      await bot.get_channel(twitter_channel).send(tweetArray[0])
+      del tweetArray[0]
+      if(len(tweetArray) > 0):
+        await check_channel.send(tweetArray[0])
+        await check_channel.send(f"Should I send this message to the twitter channel?")
+    else:
+      await check_channel.send("What are you doing? I have no tweets to send.")
+  else:
+    print("yes command, in the wrong channel")
+
+@bot.command()
+@commands.has_role(minimum_role)
+async def no(ctx):
+  check_channel = bot.get_channel(twitter_check_channel)
+  if(ctx.channel == check_channel):
+    if(len(tweetArray) > 0):
+      await check_channel.send("Ok, I will not send this tweet.")
+      del tweetArray[0]
+      if(len(tweetArray) > 0):
+        await check_channel.send(tweetArray[0])
+        await check_channel.send(f"Should I send this message to the twitter channel?")
+    else:
+      await check_channel.send("What are you doing? I have no tweets to send.")
+  else:
+    print("no command, in the wrong channel")
+
+@bot.command()
+@commands.has_role(minimum_role)
+async def get_last_tweets(ctx, numberofitems:int):
+  channel = bot.get_channel(twitter_check_channel)
+  for tweet in tweepy.Cursor(api.user_timeline,id='Nerd_Monkeys', include_rts=False, tweet_mode="extended").items(numberofitems):
+    tweet_full_text = tweet._json['full_text']
+    text_to_send = re.sub(r' https://t.co/\w{10}', '', tweet_full_text)
+    tweetArray.append(f"{tweet.user.name}: {text_to_send}\n \nhttps://twitter.com/{tweet.user.screen_name}/status/{tweet.id}")
+
+  await channel.send(tweetArray[0])
+  await channel.send(f"Should I send this message to the twitter channel?")
+@get_last_tweets.error
+async def get_last_tweets_error(ctx,error):
+  print(error)
+  if isinstance(error, commands.MissingRequiredArgument):
+    await ctx.channel.send('Missing required argument. \nThis is how you use this function: --get_last_tweets <number of tweets> \nAs an example: --get_last_tweets 5')
+  elif isinstance(error, commands.BadArgument):
+    await ctx.channel.send('I could not understand how many tweets you want. Please use a number.')
+  elif isinstance(error, commands.MissingRole):
+    await ctx.channel.send('You do not have permissions to use this function. \nSorry.')
+
+
+#-----BOT EVENTS-----
 @bot.event
 async def on_ready():
   print('I have just logged in as {0.user}'.format(bot))
   #await bot.get_channel(twitter_channel).send('Hello humans! I am now going to post twitter updates in this channel.')
 
+
+#-----BOT COMMANDS-----
 @bot.command()
 async def bot_help(ctx):
-  await ctx.channel.send('--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \n--play <Youtube URL> to play the sound on a voice channel\n--pause to pause audio \n--resume to resume audio \n--leave to leave the voice channel \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> This is only available for Nerd Monkeys')
+  await ctx.channel.send('--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \n--play <Youtube URL> to play the sound on a voice channel\n--pause to pause audio \n--resume to resume audio \n--leave to leave the voice channel \nOnly available for Nerd Monkeys: \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_last_tweets <number of tweets> \n--yes To send the tweet \n--no To not send the tweet')
 
 @bot.command()
 async def hello(ctx):
