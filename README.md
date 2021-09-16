@@ -34,12 +34,15 @@ Only available for the users with the minimum role:
 Search twitter for a specific subject/user/hashtag.
 --public_tweet_about <Consider RT's? True/False> <"subject you want to seach">
 
-Get the latest tweets from the specified used in the twitter stream.
---get_last_tweets <number of tweets>
+Get the x latest tweets from user y.
+--get_latest_tweets <number of tweets> <from who>
 
 Allow latest tweet to be published in the discord.
 --yes
 
 Do not allow latest tweet to be published in the discord.
 --no
+
+Clear the array of saved tweets.
+--clear
 
