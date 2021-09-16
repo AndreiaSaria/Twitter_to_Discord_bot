@@ -19,7 +19,7 @@ Get cats from thecatapi.com
 --cat
 
 Play youtube audio 
---play <URL>
+--play 'URL'
   
 Pause audio
 --pause
@@ -31,11 +31,15 @@ Leave voice channel
 --leave
 
 Only available for the users with the minimum role:
+
+
 Search twitter for a specific subject/user/hashtag.
---public_tweet_about <Consider RT's? True/False> <"subject you want to seach">
+
+--public_tweet_about 'Consider RT's? True/False' '"subject you want to seach"'
 
 Get the x latest tweets from user y.
---get_latest_tweets <number of tweets> <from who>
+
+--get_latest_tweets 'number of tweets' 'from who'
 
 Allow latest tweet to be published in the discord.
 --yes
