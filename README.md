@@ -7,7 +7,7 @@ You can use Replit and UptimeBot to keep it alive, the code is commented, curren
 
 Add a twitter user to follow in streaming and every post will be sent to a chosen discord channel.
 
-There are also some functions:
+## Commands:
 
 For general commands
 --bot_help
@@ -17,18 +17,6 @@ Get dogs from random.dog
 
 Get cats from thecatapi.com
 --cat
-
-Play youtube audio 
---play 'URL'
-  
-Pause audio
---pause
-  
-Resume
---resume
-  
-Leave voice channel
---leave
 
 Only available for the users with the minimum role:
 
