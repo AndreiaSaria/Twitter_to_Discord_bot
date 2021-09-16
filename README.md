@@ -33,12 +33,10 @@ Leave voice channel
 Only available for the users with the minimum role:
 
 
-Search twitter for a specific subject/user/hashtag.
-
+Search twitter for a specific subject/user/hashtag. 
 --public_tweet_about 'Consider RT's? True/False' '"subject you want to seach"'
 
-Get the x latest tweets from user y.
-
+Get the x latest tweets from user y. 
 --get_latest_tweets 'number of tweets' 'from who'
 
 Allow latest tweet to be published in the discord.
