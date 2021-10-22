@@ -257,7 +257,7 @@ async def search(ctx, name):
 async def search_error(ctx,error):
   print(error)
   if isinstance(error, commands.MissingRequiredArgument):
-    ctx.channel.send('Missing required argument. \nThis is how you use this function: --search <"Search subject in quotes if contains more than one word">. \nAs an example: --search "Blue flower"')
+    await ctx.channel.send('Missing required argument. \nThis is how you use this function: --search <"Search subject in quotes if contains more than one word">. \nAs an example: --search "Blue flower"')
 
 
 #-----BOT LISTEN-----
