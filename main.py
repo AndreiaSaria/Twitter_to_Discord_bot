@@ -7,6 +7,7 @@ import aiohttp
 import io
 import json
 #from keep_alive import keep_alive
+from random import randrange
 import re
 from urllib3.exceptions import ProtocolError
 
@@ -192,7 +193,7 @@ async def on_ready():
 #-----BOT COMMANDS-----
 @bot.command()
 async def bot_help(ctx):
-  await ctx.channel.send('--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \nOnly available for Nerd Monkeys: \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_latest_tweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets')
+  await ctx.channel.send('--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \n--search '"subject you want"' Get any image from pixabay.com \nOnly available for Nerd Monkeys: \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_latest_tweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets')
 
 @bot.command()
 async def hello(ctx):
@@ -233,6 +234,30 @@ async def cat(ctx):
 async def cat_error(ctx,error):
   print(error)
   await cat(ctx) #call again when error
+
+@bot.command()
+async def search(ctx, name):
+  temp = requests.get("https://pixabay.com/api/", params={"key":os.environ['PIXABAY_KEY'],"q":name})
+  #print(temp.url)
+  json_data = json.loads(temp.text)
+  imagelist = [i['largeImageURL'] for i in json_data['hits'][:20]]
+
+  if len(imagelist) > 0:
+    image = imagelist[randrange(len(imagelist))]
+    imagefilename = image.split("/get/",1)[1]
+    async with aiohttp.ClientSession() as session:
+      async with session.get(image) as resp:
+        if resp.status != 200:
+          return await ctx.send('Could not get your image...')
+        data = io.BytesIO(await resp.read())
+        await ctx.channel.send(file=discord.File(data, imagefilename))
+  else:
+    await ctx.channel.send('No image found matching this term.')
+@search.error
+async def search_error(ctx,error):
+  print(error)
+  if isinstance(error, commands.MissingRequiredArgument):
+    ctx.channel.send('Missing required argument. \nThis is how you use this function: --search <"Search subject in quotes if contains more than one word">. \nAs an example: --search "Blue flower"')
 
 
 #-----BOT LISTEN-----

@@ -18,6 +18,9 @@ Get dogs from random.dog
 Get cats from thecatapi.com
 --cat
 
+Get any image from pixabay.com
+--search '"subject you want"'
+
 Only available for the users with the minimum role:
 
 
