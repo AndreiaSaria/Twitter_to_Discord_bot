@@ -6,13 +6,13 @@ import requests
 import aiohttp
 import io
 import json
-#from keep_alive import keep_alive
+from keep_alive import keep_alive
 from random import randrange
 import re
 from urllib3.exceptions import ProtocolError
 
-twitter_channel = 869286704933114005 #814638149720211516 #The discord channel to publish tweets
-twitter_check_channel = 887667563457306694 #819246013277274143
+twitter_channel = 814638149720211516 #869286704933114005 #The discord channel to publish tweets
+twitter_check_channel = 819246013277274143 #887667563457306694 
 
 global minimum_role #Minimum role to use the public_tweet_about
 minimum_role = "Nerd Monkeys"
@@ -240,7 +240,7 @@ async def search(ctx, name):
   temp = requests.get("https://pixabay.com/api/", params={"key":os.environ['PIXABAY_KEY'],"q":name})
   #print(temp.url)
   json_data = json.loads(temp.text)
-  imagelist = [i['largeImageURL'] for i in json_data['hits'][:20]]
+  imagelist = [i['largeImageURL'] for i in json_data['hits']]
 
   if len(imagelist) > 0:
     image = imagelist[randrange(len(imagelist))]
@@ -283,6 +283,6 @@ async def on_message(message):
 
 
 #-----STARTING WEB SERVER-----
-#keep_alive()
-bot.run(os.environ['MYSERVERTOKEN'])
-#bot.run(os.environ['NMTOKEN'])
+keep_alive()
+#bot.run(os.environ['MYSERVERTOKEN'])
+bot.run(os.environ['NMTOKEN'])

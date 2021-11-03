@@ -2,8 +2,8 @@
 Work in progress!
 
 A Discord bot made in Python that gets information from twitter and transfers it to a Discord server.
-It also gets random dogs/cats for you and plays youtube audio!
-You can use Replit and UptimeBot to keep it alive, the code is commented, currently I'm using a virtual machine.
+It also gets random dogs/cats for you and can search for any other image on pixabay.
+You can use Replit and UptimeBot to keep it alive.
 
 Add a twitter user to follow in streaming and every post will be sent to a chosen discord channel.
 
