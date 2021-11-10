@@ -193,11 +193,17 @@ async def on_ready():
 #-----BOT COMMANDS-----
 @bot.command()
 async def bot_help(ctx):
-  await ctx.channel.send('--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \n--search '"subject you want"' Get any image from pixabay.com \nOnly available for Nerd Monkeys: \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_latest_tweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets')
+  await ctx.channel.send('--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \n--search '"subject you want"' Get any image from pixabay.com \n--delete_message '"message id"' Deletes a bot message with id \nOnly available for Nerd Monkeys: \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_latest_tweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets')
 
 @bot.command()
 async def hello(ctx):
   await ctx.channel.send('Hello human.')
+
+@bot.command()
+async def delete_message(ctx, msgID: int):
+    msg = await ctx.fetch_message(msgID)
+    print('Deleted message ' + msgID)
+    await msg.delete()
 
 @bot.command()
 #Dog only possible by random.dog

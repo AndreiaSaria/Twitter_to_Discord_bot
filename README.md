@@ -2,7 +2,9 @@
 Work in progress!
 
 A Discord bot made in Python that gets information from twitter and transfers it to a Discord server.
+
 It also gets random dogs/cats for you and can search for any other image on pixabay.
+
 You can use Replit and UptimeBot to keep it alive.
 
 Add a twitter user to follow in streaming and every post will be sent to a chosen discord channel.
@@ -20,6 +22,9 @@ Get cats from thecatapi.com
 
 Get any image from pixabay.com
 --search '"subject you want"'
+
+Deletes a bot message with id
+--delete_message '"message id"'
 
 Only available for the users with the minimum role:
 
