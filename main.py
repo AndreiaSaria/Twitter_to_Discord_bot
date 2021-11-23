@@ -19,7 +19,7 @@ minimum_role = "Nerd Monkeys"
 
 #-----AUTENTICATION-----
 #Here we do not use the client, we use commands https://discordpy.readthedocs.io/en/stable/ext/commands/commands.html#commands
-bot = commands.Bot(command_prefix='--')
+bot = commands.Bot(command_prefix='--', help_command=None)
 
 # Authenticate to Twitter
 #auth = tweepy.AppAuthHandler(os.environ['USER_KEY'], os.environ['USER_SECRET'])
@@ -41,12 +41,10 @@ class tweetStream(tweepy.StreamListener):
         #In case we need the RT check this https://docs.tweepy.org/en/stable/extended_tweets.html#examples
     except ProtocolError:
       print("PrototcolError")
-      bot.dispatch("lost_tweet", "Protocol error, restarting stream. The latest tweet may be lost. (use --get_last_tweets <number of tweets> to try and catch the lost ones)")
       start_stream()
       
   def on_exception(self, exception):
     print('Exception! \n', exception)
-    bot.dispatch("lost_tweet", "Exception! Restarting stream. The latest tweet may be lost. (use --get_last_tweets <number of tweets> to try and catch the lost ones)")
     start_stream()
 
 api = tweepy.API(auth, wait_on_rate_limit=True,
@@ -192,8 +190,8 @@ async def on_ready():
 
 #-----BOT COMMANDS-----
 @bot.command()
-async def bot_help(ctx):
-  await ctx.channel.send('--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \n--search '"subject you want"' Get any image from pixabay.com \n--delete_message '"message id"' Deletes a bot message with id \nOnly available for Nerd Monkeys: \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_latest_tweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets')
+async def help(ctx):
+  await ctx.channel.send('Commands: \n--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \n--search '"subject you want"' Get any image from pixabay.com \n--delete_message '"message id"' Deletes a bot message with id \nOnly available for Nerd Monkeys: \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_latest_tweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets')
 
 @bot.command()
 async def hello(ctx):
