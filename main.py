@@ -273,18 +273,12 @@ async def on_message(message):
   lowerCaseMsg = message.content.lower()
   if message.author == bot.user:
     return
-
-  if lowerCaseMsg.startswith('boas') or lowerCaseMsg.startswith('bouas') or lowerCaseMsg.startswith('buenos'):
-    global integer_num
-    integer_num += 1
-    print(integer_num)
-    if (integer_num == 3):
-      integer_num = 0
-      await message.channel.send('BOUAS!')
   
   if lowerCaseMsg.startswith('hello bot'):
     await message.channel.send('Hello human!')
 
+  if 'estágio' in lowerCaseMsg or 'estagiar' in lowerCaseMsg or 'internship' in lowerCaseMsg:
+    await message.channel.send('internship@nerdmonkeys.pt')
 
 #-----STARTING WEB SERVER-----
 keep_alive()
