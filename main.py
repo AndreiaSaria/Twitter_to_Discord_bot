@@ -191,7 +191,7 @@ async def on_ready():
 #-----BOT COMMANDS-----
 @bot.command()
 async def help(ctx):
-  await ctx.channel.send('Commands: \n--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \n--search '"subject you want"' Get any image from pixabay.com \n--delete_message '"message id"' Deletes a bot message with id \nOnly available for Nerd Monkeys: \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_latest_tweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets')
+  await ctx.channel.send('Commands: \n--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \n--search '"subject you want"' Get any image from pixabay.com \n--search2 '"subject you want"' Get any image from unsplash.com \n--delete_message '"message id"' Deletes a bot message with id \nOnly available for Nerd Monkeys: \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_latest_tweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets')
 
 @bot.command()
 async def hello(ctx):
@@ -263,6 +263,27 @@ async def search_error(ctx,error):
   if isinstance(error, commands.MissingRequiredArgument):
     await ctx.channel.send('Missing required argument. \nThis is how you use this function: --search <"Search subject in quotes if contains more than one word">. \nAs an example: --search "Blue flower"')
 
+@bot.command()
+async def search2(ctx, name):
+  temp = requests.get("https://api.unsplash.com/search/photos", params={"client_id":os.environ['UNSPLASH_KEY'],"query":name,"per_page":30})
+  #print(temp.url)
+  json_data = json.loads(temp.text)
+  
+  urlslist = [i['urls'] for i in json_data['results']]
+  imagelist = [i['full'] for i in urlslist]
+
+  if len(imagelist) > 0:
+    image = imagelist[randrange(len(imagelist))]
+    imagefilename = "SeemsLikeThisAPIOnlyGivesMeJpg.jpg"
+    async with aiohttp.ClientSession() as session:
+      async with session.get(image) as resp:
+        if resp.status != 200:
+          return await ctx.send('Could not get your image...')
+        data = io.BytesIO(await resp.read())
+        await ctx.channel.send(file=discord.File(data, imagefilename))
+  else:
+    await ctx.channel.send('No image found matching this term.')
+
 
 #-----BOT LISTEN-----
 #https://stackoverflow.com/questions/53705633/how-to-use-discord-bot-commands-and-event-both
@@ -277,8 +298,17 @@ async def on_message(message):
   if lowerCaseMsg.startswith('hello bot'):
     await message.channel.send('Hello human!')
 
-  if 'estágio' in lowerCaseMsg or 'estagiar' in lowerCaseMsg or 'internship' in lowerCaseMsg:
+  if 'estágio' in lowerCaseMsg or 'estagiar' in lowerCaseMsg or 'internship' in lowerCaseMsg or 'estagio' in lowerCaseMsg:
     await message.channel.send('internship@nerdmonkeys.pt')
+
+  
+  if lowerCaseMsg.startswith('boas') or lowerCaseMsg.startswith('bouas') or lowerCaseMsg.startswith('buenos'):
+    global integer_num
+    integer_num += 1
+    print(integer_num)
+    if (integer_num == 3):
+      integer_num = 0
+      await message.channel.send('It is always bouas time')
 
 #-----STARTING WEB SERVER-----
 keep_alive()

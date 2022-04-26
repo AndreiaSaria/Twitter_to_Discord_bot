@@ -23,6 +23,9 @@ Get cats from thecatapi.com
 Get any image from pixabay.com
 --search '"subject you want"'
 
+Get any image from unsplash.com
+--search2 '"subject you want"'
+
 Deletes a bot message with id
 --delete_message '"message id"'
 
