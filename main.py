@@ -10,6 +10,7 @@ from keep_alive import keep_alive
 from random import randrange
 import re
 from urllib3.exceptions import ProtocolError
+from discord.ext.commands import CommandNotFound
 
 twitter_channel = 814638149720211516 #869286704933114005 #The discord channel to publish tweets
 twitter_check_channel = 819246013277274143 #887667563457306694 
@@ -191,7 +192,7 @@ async def on_ready():
 #-----BOT COMMANDS-----
 @bot.command()
 async def help(ctx):
-  await ctx.channel.send('Commands: \n--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \n--search '"subject you want"' Get any image from pixabay.com \n--search2 '"subject you want"' Get any image from unsplash.com \n--delete_message '"message id"' Deletes a bot message with id \nOnly available for Nerd Monkeys: \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_latest_tweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets')
+  await ctx.channel.send('Commands: \n--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \n--search '"subject you want"' Get any image from pixabay.com \n--search2 '"subject you want"' Get any image from unsplash.com \n--searchRandom <optional subject> Random image from unsplash.com \n--delete_message '"message id"' Deletes a bot message with id \nOnly available for Nerd Monkeys: \n--public_tweet_about <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_latest_tweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets')
 
 @bot.command()
 async def hello(ctx):
@@ -242,12 +243,12 @@ async def cat_error(ctx,error):
 @bot.command()
 async def search(ctx, name):
   temp = requests.get("https://pixabay.com/api/", params={"key":os.environ['PIXABAY_KEY'],"q":name})
-  #print(temp.url)
   json_data = json.loads(temp.text)
   imagelist = [i['largeImageURL'] for i in json_data['hits']]
 
   if len(imagelist) > 0:
     image = imagelist[randrange(len(imagelist))]
+    print(image)
     imagefilename = image.split("/get/",1)[1]
     async with aiohttp.ClientSession() as session:
       async with session.get(image) as resp:
@@ -256,7 +257,8 @@ async def search(ctx, name):
         data = io.BytesIO(await resp.read())
         await ctx.channel.send(file=discord.File(data, imagefilename))
   else:
-    await ctx.channel.send('No image found matching this term.')
+    await ctx.channel.send('No image found matching this term on pixabay, now using unsplash...')
+    await search2(ctx, name)
 @search.error
 async def search_error(ctx,error):
   print(error)
@@ -266,7 +268,6 @@ async def search_error(ctx,error):
 @bot.command()
 async def search2(ctx, name):
   temp = requests.get("https://api.unsplash.com/search/photos", params={"client_id":os.environ['UNSPLASH_KEY'],"query":name,"per_page":30})
-  #print(temp.url)
   json_data = json.loads(temp.text)
   
   urlslist = [i['urls'] for i in json_data['results']]
@@ -274,6 +275,7 @@ async def search2(ctx, name):
 
   if len(imagelist) > 0:
     image = imagelist[randrange(len(imagelist))]
+    print(image)
     imagefilename = "SeemsLikeThisAPIOnlyGivesMeJpg.jpg"
     async with aiohttp.ClientSession() as session:
       async with session.get(image) as resp:
@@ -281,9 +283,27 @@ async def search2(ctx, name):
           return await ctx.send('Could not get your image...')
         data = io.BytesIO(await resp.read())
         await ctx.channel.send(file=discord.File(data, imagefilename))
+        await ctx.channel.send(json_data['total_pages'])
   else:
-    await ctx.channel.send('No image found matching this term.')
+    await ctx.channel.send('No image found matching this term. :(')
 
+@bot.command()
+async def searchRandom(ctx, name = ""):
+  temp = requests.get("https://api.unsplash.com/photos/random", params={"client_id":os.environ['UNSPLASH_KEY'],"query":name})
+  json_data = json.loads(temp.text)
+  if('errors' in json_data):
+    await ctx.channel.send('No image found matching this term. :(')
+    return
+    
+  image = json_data['urls']['full']
+  print(image)
+  imagefilename = "SeemsLikeThisAPIOnlyGivesMeJpg.jpg"
+  async with aiohttp.ClientSession() as session:
+    async with session.get(image) as resp:
+      if resp.status != 200:
+        return await ctx.send('Could not get your image...')
+      data = io.BytesIO(await resp.read())
+      await ctx.channel.send(file=discord.File(data, imagefilename))
 
 #-----BOT LISTEN-----
 #https://stackoverflow.com/questions/53705633/how-to-use-discord-bot-commands-and-event-both

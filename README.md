@@ -26,6 +26,9 @@ Get any image from pixabay.com
 Get any image from unsplash.com
 --search2 '"subject you want"'
 
+Get random image from unsplash.com
+--searchRandom (optional argument) '"subject you want"'
+
 Deletes a bot message with id
 --delete_message '"message id"'
 
