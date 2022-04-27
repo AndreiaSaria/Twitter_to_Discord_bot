@@ -200,9 +200,12 @@ async def hello(ctx):
 
 @bot.command()
 async def delete_message(ctx, msgID: int):
-    msg = await ctx.fetch_message(msgID)
-    print('Deleted message ' + msgID)
+  msg = await ctx.fetch_message(msgID)
+  if msg.author == bot.user:
     await msg.delete()
+    print(f'Deleted message {msgID}')
+  else:
+    await ctx.channel.send("I was not the author of the message!")  
 
 @bot.command()
 #Dog only possible by random.dog
