@@ -286,7 +286,6 @@ async def search2(ctx, name):
           return await ctx.send('Could not get your image...')
         data = io.BytesIO(await resp.read())
         await ctx.channel.send(file=discord.File(data, imagefilename))
-        await ctx.channel.send(json_data['total_pages'])
   else:
     await ctx.channel.send('No image found matching this term. :(')
 
@@ -308,6 +307,38 @@ async def searchRandom(ctx, name = ""):
       data = io.BytesIO(await resp.read())
       await ctx.channel.send(file=discord.File(data, imagefilename))
 
+
+@bot.command()
+async def newBouas(ctx, newBouas):
+  SetNewBouas(newBouas)
+  await ctx.channel.send('New Bouas is set')
+  
+@bot.command()
+async def listAllBouas(ctx):
+  await ctx.channel.send(ListAllBouas())
+
+@bot.command()
+@commands.has_role(minimum_role)
+async def readBouasFile(ctx):
+  await ctx.channel.send(ReadBouasFile())
+@readBouasFile.error
+async def readBouasFileError(ctx, error):
+  print(error)
+  if isinstance(error, commands.MissingRole):
+    await ctx.channel.send('You do not have permissions to use this function. \nSorry.')
+
+@bot.command()
+@commands.has_role(minimum_role)
+async def rewriteBouasFile(ctx, newText):
+  RewriteBouasFile(newText)
+  await ctx.channel.send('New list of Bouas: '+ ListAllBouas())
+@rewriteBouasFile.error
+async def rewriteBouasFileError(ctx, error):
+  print(error)
+  if isinstance(error, commands.MissingRole):
+    await ctx.channel.send('You do not have permissions to use this function. \nSorry.')
+
+  
 #-----BOT LISTEN-----
 #https://stackoverflow.com/questions/53705633/how-to-use-discord-bot-commands-and-event-both
 integer_num = 0
@@ -326,14 +357,39 @@ async def on_message(message):
 
   
   if lowerCaseMsg.startswith('boas') or lowerCaseMsg.startswith('bouas') or lowerCaseMsg.startswith('buenos'):
-    global integer_num
+    await message.channel.send(BouasOfTheDay())
+    '''global integer_num
     integer_num += 1
     print(integer_num)
     if (integer_num == 3):
       integer_num = 0
-      await message.channel.send('It is always bouas time')
+      await message.channel.send(BouasOfTheDay())'''
 
+def ReadBouasFile():
+  bouasFile = open("bouasFile.txt","r")
+  content = bouasFile.read()
+  bouasFile.close()
+  return content
+
+def ListAllBouas():
+  bouasPhrases = ReadBouasFile().split("¨")
+  return bouasPhrases
+  
+def BouasOfTheDay():
+  bouasList = ListAllBouas()
+  return bouasList[randrange(len(bouasList))]
+
+def SetNewBouas(newBouas):
+  bouasFile = open("bouasFile.txt","a")
+  bouasFile.write("¨"+newBouas)
+  bouasFile.close()
+
+def RewriteBouasFile(textFile):
+  bouasFile = open("bouasFile.txt","w")
+  bouasFile.write(textFile)
+  bouasFile.close()
+  
 #-----STARTING WEB SERVER-----
-keep_alive()
-#bot.run(os.environ['MYSERVERTOKEN'])
-bot.run(os.environ['NMTOKEN'])
+#keep_alive()
+bot.run(os.environ['MYSERVERTOKEN'])
+#bot.run(os.environ['NMTOKEN'])
