@@ -12,7 +12,7 @@ Add a twitter user to follow in streaming and every post will be sent to a chose
 ## Commands:
 
 For general commands
---bot_help
+--help
 
 Get dogs from random.dog
 --dog
@@ -30,16 +30,16 @@ Get random image from unsplash.com
 --searchRandom (optional argument) '"subject you want"'
 
 Deletes a bot message with id
---delete_message '"message id"'
+--deleteMessage '"message id"'
 
 Only available for the users with the minimum role:
 
 
 Search twitter for a specific subject/user/hashtag. 
---public_tweet_about 'Consider RT's? True/False' '"subject you want to seach"'
+--publicTweetAbout 'Consider RT's? True/False' '"subject you want to seach"'
 
 Get the x latest tweets from user y. 
---get_latest_tweets 'number of tweets' 'from who'
+--getLatestTweets 'number of tweets' 'from who'
 
 Allow latest tweet to be published in the discord.
 --yes
