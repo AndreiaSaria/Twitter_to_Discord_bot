@@ -13,7 +13,7 @@ from urllib3.exceptions import ProtocolError
 from discord.ext.commands import CommandNotFound
 
 twitter_channel = 814638149720211516 #869286704933114005 #The discord channel to publish tweets
-twitter_check_channel = 819246013277274143 #887667563457306694 
+twitter_check_channel = 819246013277274143 #887667563457306694
 
 global minimum_role #Minimum role to use the public_tweet_about
 minimum_role = "Nerd Monkeys"
@@ -64,6 +64,8 @@ def start_stream():
 start_stream()
     
 tweetArray = []
+
+#-----TWITTER BOT EVENTS-----
 #https://stackoverflow.com/questions/64810905/emit-custom-events-discord-py
 @bot.event
 async def on_tweet(tweet):
@@ -86,6 +88,7 @@ async def on_tweet(tweet):
 async def on_lost_tweet(text_to_send):
   await bot.get_channel(twitter_check_channel).send(text_to_send)
 
+#-----TWITTER BOT COMMANDS-----
 @bot.command()
 @commands.has_role(minimum_role)
 async def yes(ctx):
@@ -155,7 +158,7 @@ async def getLatestTweetsError(ctx,error):
   elif isinstance(error, commands.BadArgument):
     await ctx.channel.send('I could not understand how many tweets or from whom you want. Please use a number as the first parameter and a string (without spaces) as the second.')
   elif isinstance(error, commands.MissingRole):
-    await ctx.channel.send('You do not have permissions to use this function. \n:cry:.')
+    await ctx.channel.send('You do not have permissions to use this function. :cry:')
 
 @bot.command()
 @commands.has_role(minimum_role)
@@ -176,10 +179,9 @@ async def publicTweetAboutError(ctx,error):
   if isinstance(error, commands.MissingRequiredArgument):
     await ctx.channel.send('Missing required argument. \nThis is how you use this function: --publicTweetAbout <Do you want RT? true/false> <"Search subject in quotes if contains more than one word">. \nAs an example: --publicTweetAbout false "How handsome am I?"')
   elif isinstance(error, commands.BadBoolArgument):
-    await ctx.channel.send('I could not understand if you want RTs or not. If you want them type true after the function call, otherwise, type false.')
+    await ctx.channel.send('I could not understand if you want RTs or not. If you want them type true before the subject, otherwise, type false.')
   elif isinstance(error, commands.MissingRole):
-    await ctx.channel.send('You do not have permissions to use this function. \n:cry:.')
-
+    await ctx.channel.send('You do not have permissions to use this function. :cry:')
 
 
 #-----BOT EVENTS-----
@@ -192,7 +194,7 @@ async def on_ready():
 #-----BOT COMMANDS-----
 @bot.command()
 async def help(ctx):
-  await ctx.channel.send('Commands: \n--hello \n--dog To get a random dog from random.dog api \n --cat To get a random cat from thecatapi.com \n--search "subject you want" Get any image from pixabay.com \n--search2 "subject you want" Get any image from unsplash.com \n--searchRandom <optional subject> Random image from unsplash.com \n--deleteMessage "message id" Deletes a bot message with id \nOnly available for Nerd Monkeys: \n--publicTweetAbout <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_latest_tweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets')
+  await ctx.channel.send('Commands: \n--hello \n--dog To get a random dog from random.dog api \n--cat To get a random cat from thecatapi.com \n--search "subject you want" Get any image from pixabay.com \n--search2 "subject you want" Get any image from unsplash.com \n--searchRandom <optional subject> Random image from unsplash.com \n--deleteMessage "message id" Deletes a bot message with id\n--listAllBouas \nOnly available for Nerd Monkeys: \n--publicTweetAbout <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_latest_tweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets\n--newBouas "Your new Bouas call!"\n--readBouasFile\n--rewriteBouasFile "All of the bouas here, separated by ¨"')
 
 @bot.command()
 async def hello(ctx):
@@ -227,7 +229,7 @@ async def cat(ctx):
   jsonData = json.loads(temp.text)
   catUrl = jsonData[0]['url']
   print(catUrl)
-  catFileName = cat.split("/images/",1)[1]
+  catFileName = catUrl.split("/images/",1)[1]
   await SendImage(ctx, catUrl, catFileName)
 @cat.error
 async def cat_error(ctx, error):
@@ -293,9 +295,15 @@ async def searchRandom(ctx, name = ""):
   await SendImage(ctx, imageUrl, imageFileName)
 
 @bot.command()
+@commands.has_role(minimum_role)
 async def newBouas(ctx, newBouas):
   SetNewBouas(newBouas)
   await ctx.channel.send('New Bouas is set')
+@newBouas.error
+async def newBouasError(ctx, error):
+  print(error)
+  if isinstance(error, commands.MissingRole):
+    await ctx.channel.send('You do not have permissions to use this function. :cry:')
   
 @bot.command()
 async def listAllBouas(ctx):
@@ -309,18 +317,17 @@ async def readBouasFile(ctx):
 async def readBouasFileError(ctx, error):
   print(error)
   if isinstance(error, commands.MissingRole):
-    await ctx.channel.send('You do not have permissions to use this function. \n:cry:.')
+    await ctx.channel.send('You do not have permissions to use this function. :cry:')
 
 @bot.command()
 @commands.has_role(minimum_role)
 async def rewriteBouasFile(ctx, newText):
   RewriteBouasFile(newText)
-  await ctx.channel.send('New list of Bouas: '+ ListAllBouas())
 @rewriteBouasFile.error
 async def rewriteBouasFileError(ctx, error):
   print(error)
   if isinstance(error, commands.MissingRole):
-    await ctx.channel.send('You do not have permissions to use this function. \n:cry:.')
+    await ctx.channel.send('You do not have permissions to use this function. :cry:')
 
   
 #-----BOT LISTEN-----
@@ -338,7 +345,6 @@ async def on_message(message):
 
   if 'estágio' in lowerCaseMsg or 'estagiar' in lowerCaseMsg or 'internship' in lowerCaseMsg or 'estagio' in lowerCaseMsg:
     await message.channel.send('internship@nerdmonkeys.pt')
-
   
   if lowerCaseMsg.startswith('boas') or lowerCaseMsg.startswith('bouas') or lowerCaseMsg.startswith('buenos'):
     global integer_num
@@ -348,6 +354,7 @@ async def on_message(message):
       integer_num = 0
       await message.channel.send(BouasOfTheDay())
 
+      
 #-----General purpose methods-----
 def ReadBouasFile():
   bouasFile = open("bouasFile.txt","r")

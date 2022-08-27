@@ -3,7 +3,7 @@ Work in progress!
 
 A Discord bot made in Python that gets information from twitter and transfers it to a Discord server.
 
-It also gets random dogs/cats for you and can search for any other image on pixabay.
+It also gets random dogs/cats for you and can search for any other image on pixabay or unsplash.
 
 You can use Replit and UptimeBot to keep it alive.
 
@@ -32,6 +32,9 @@ Get random image from unsplash.com
 Deletes a bot message with id
 --deleteMessage '"message id"'
 
+Lists all the bouas messages stored in the bouasFile
+--listAllBouas
+
 Only available for the users with the minimum role:
 
 
@@ -50,3 +53,11 @@ Do not allow latest tweet to be published in the discord.
 Clear the array of saved tweets.
 --clear
 
+Add a new Bouas to the bouas file
+--newBouas '"bouas!"'
+
+Read bouas file
+--readBouasFile
+
+Rewrite the bouas file
+--rewriteBouasFile '"All the bouas inside here"'
