@@ -194,7 +194,7 @@ async def on_ready():
 #-----BOT COMMANDS-----
 @bot.command()
 async def help(ctx):
-  await ctx.channel.send('Commands: \n--hello \n--dog To get a random dog from random.dog api \n--cat To get a random cat from thecatapi.com \n--search "subject you want" Get any image from pixabay.com \n--search2 "subject you want" Get any image from unsplash.com \n--searchRandom <optional subject> Random image from unsplash.com \n--deleteMessage "message id" Deletes a bot message with id\n--listAllBouas \nOnly available for Nerd Monkeys: \n--publicTweetAbout <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--get_latest_tweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets\n--newBouas "Your new Bouas call!"\n--readBouasFile\n--rewriteBouasFile "All of the bouas here, separated by ¨"')
+  await ctx.channel.send('Commands: \n--hello \n--dog To get a random dog from random.dog api \n--cat To get a random cat from thecatapi.com \n--search "subject you want" Get any image from pixabay.com \n--search2 "subject you want" Get any image from unsplash.com \n--searchRandom <optional subject> Random image from unsplash.com \n--deleteMessage "message id" Deletes a bot message with id\nOnly available for Nerd Monkeys: \n--publicTweetAbout <Do you want RT? true/false> <"Search subject in quotes if contains more than one word"> \n--getLatestTweets <number of tweets> <from who>\n--yes To send the tweet \n--no To not send the tweet\n--clear Clear array of saved tweets\n--newBouas "Your new Bouas call!"\n--readBouasFile')
 
 @bot.command()
 async def hello(ctx):
@@ -304,10 +304,6 @@ async def newBouasError(ctx, error):
   print(error)
   if isinstance(error, commands.MissingRole):
     await ctx.channel.send('You do not have permissions to use this function. :cry:')
-  
-@bot.command()
-async def listAllBouas(ctx):
-  await ctx.channel.send(ListAllBouas())
 
 @bot.command()
 @commands.has_role(minimum_role)
@@ -319,6 +315,7 @@ async def readBouasFileError(ctx, error):
   if isinstance(error, commands.MissingRole):
     await ctx.channel.send('You do not have permissions to use this function. :cry:')
 
+'''
 @bot.command()
 @commands.has_role(minimum_role)
 async def rewriteBouasFile(ctx, newText):
@@ -327,7 +324,7 @@ async def rewriteBouasFile(ctx, newText):
 async def rewriteBouasFileError(ctx, error):
   print(error)
   if isinstance(error, commands.MissingRole):
-    await ctx.channel.send('You do not have permissions to use this function. :cry:')
+    await ctx.channel.send('You do not have permissions to use this function. :cry:')'''
 
   
 #-----BOT LISTEN-----

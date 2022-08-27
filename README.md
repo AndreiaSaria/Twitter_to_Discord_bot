@@ -32,8 +32,6 @@ Get random image from unsplash.com
 Deletes a bot message with id
 --deleteMessage '"message id"'
 
-Lists all the bouas messages stored in the bouasFile
---listAllBouas
 
 Only available for the users with the minimum role:
 
